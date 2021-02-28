@@ -54,7 +54,7 @@ function startRecording() {
 		
 		
 		//update the format 
-		document.getElementById("formats").innerHTML="Format: 1 channel pcm @ "+audioContext.sampleRate/1000+"kHz"
+		document.getElementById("formats").innerHTML
 
 		/*  assign to gumStream for later use  */
 		gumStream = stream;
