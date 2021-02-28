@@ -50,7 +50,9 @@ function startRecording() {
 
 		*/
 		audioContext = new AudioContext();
-
+		
+		
+		
 		//update the format 
 		document.getElementById("formats").innerHTML="Format: 1 channel pcm @ "+audioContext.sampleRate/1000+"kHz"
 
@@ -64,6 +66,46 @@ function startRecording() {
 			Create the Recorder object and configure to record mono sound (1 channel)
 			Recording 2 channels  will double the file size
 		*/
+		
+		function downsampleBuffer(buffer, rate) {
+                if (rate == sampleRate) {
+                    return buffer;
+                }
+                if (rate > sampleRate) {
+                    throw "downsampling rate show be smaller than original sample rate";
+                }
+                var sampleRateRatio = sampleRate / rate;
+                var newLength = Math.round(buffer.length / sampleRateRatio);
+                var result = new Float32Array(newLength);
+                var offsetResult = 0;
+                var offsetBuffer = 0;
+                while (offsetResult < result.length) {
+                    var nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
+                     // Use average value of skipped samples
+                    var accum = 0, count = 0;
+                    for (var i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+                        accum += buffer[i];
+                        count++;
+                    }
+                    result[offsetResult] = accum / count;
+                    // Or you can simply get rid of the skipped samples:
+                    // result[offsetResult] = buffer[nextOffsetBuffer];
+                    offsetResult++;
+                    offsetBuffer = nextOffsetBuffer;
+                }
+                return result;
+            }
+		
+	var downsampledBuffer = downsampleBuffer(interleaved, targetRate);
+        var dataview = encodeWAV(downsampledBuffer);	
+		
+		
+		/* sample rate */
+view.setUint32(24, newRate, true);
+/* byte rate (sample rate * block align) */
+view.setUint32(28, newRate * 4, true);
+
+		
 		rec = new Recorder(input,{numChannels:1})
 
 		//start the recording process
